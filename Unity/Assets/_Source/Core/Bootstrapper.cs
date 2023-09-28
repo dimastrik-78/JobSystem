@@ -1,4 +1,4 @@
-using System;
+using System.Collections;
 using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Jobs;
@@ -11,11 +11,13 @@ namespace _Source.Core
         [SerializeField] private GameObject prefab;
         [SerializeField] private int count;
         [SerializeField] private int speed;
+        [SerializeField] private int time;
 
         private Transform[] _objectOnScene;
         private TransformAccessArray _transformOnScene;
         private MovementJob _movementJob;
         private JobHandle _movementJobHandle;
+        private CalculationJob _calculationJob;
 
         void Awake()
         {
@@ -30,6 +32,7 @@ namespace _Source.Core
             }
 
             _transformOnScene = new TransformAccessArray(_objectOnScene);
+            StartCoroutine(Timer());
         }
 
         private void Update()
@@ -49,6 +52,18 @@ namespace _Source.Core
         private void OnDisable()
         {
             _transformOnScene.Dispose();
+        }
+
+        private IEnumerator Timer()
+        {
+            yield return new WaitForSeconds(time);
+            _calculationJob = new CalculationJob()
+            {
+                Num = Random.Range(1, 100)
+            };
+            JobHandle handle = _calculationJob.Schedule();
+            handle.Complete();
+            StartCoroutine(Timer());
         }
     }
 }
